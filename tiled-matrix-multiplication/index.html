@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tiled Matrix Multiplication Visualizer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="panel">
+      <h1>Tiled Matrix Multiplication Visualizer</h1>
+      <p class="lead">
+        Explore how tiled multiplication computes <code>C = A x B</code> using shared-memory tiles. Edit matrix values directly, choose tile size,
+        and compare sequential tile execution against GPU-style parallel tile waves.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Controls</h2>
+      <div class="controls">
+        <div class="field">
+          <label for="mInput">Rows of A (m)</label>
+          <input id="mInput" type="number" min="1" max="16" value="4">
+        </div>
+        <div class="field">
+          <label for="nInput">Cols of A / Rows of B (n)</label>
+          <input id="nInput" type="number" min="1" max="16" value="4">
+        </div>
+        <div class="field">
+          <label for="oInput">Cols of B (o)</label>
+          <input id="oInput" type="number" min="1" max="16" value="4">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="resizeBtn" class="btn-alt" type="button">Resize Matrices</button>
+        </div>
+
+        <div class="field">
+          <label for="tileInput">Tile Size (square)</label>
+          <input id="tileInput" type="number" min="1" max="16" value="2">
+        </div>
+        <div class="field">
+          <label for="modeSelect">Computation Mode</label>
+          <select id="modeSelect">
+            <option value="sequential">Sequential Tiles</option>
+            <option value="parallel">Parallel Tiles (GPU-like)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="speedInput">Animation Speed</label>
+          <div class="speed-wrap">
+            <input id="speedInput" type="range" min="80" max="1500" step="20" value="420">
+            <output id="speedLabel">420 ms</output>
+          </div>
+        </div>
+        <div class="field">
+          <label for="inspectTileSelect">Inspect Tile (Parallel)</label>
+          <select id="inspectTileSelect"></select>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-top: 12px;">
+        <button id="defaultsBtn" type="button">Reset Values</button>
+        <button id="randomBtn" type="button">Randomize Values</button>
+        <button id="startBtn" type="button" class="btn-primary">Start</button>
+        <button id="pauseBtn" type="button">Pause</button>
+        <button id="stepBtn" type="button">Step</button>
+        <button id="resetBtn" type="button">Reset Progress</button>
+      </div>
+
+      <div id="status" class="status" aria-live="polite"></div>
+      <p class="tiny">Dimensions capped at 16 to keep animation responsive and readable.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Matrices</h2>
+      <div class="matrices">
+        <article class="matrix-card">
+          <h3>A (m x n)</h3>
+          <div id="aContainer"></div>
+        </article>
+        <article class="matrix-card">
+          <h3>B (n x o)</h3>
+          <div id="bContainer"></div>
+        </article>
+        <article class="matrix-card">
+          <h3>C (m x o)</h3>
+          <div id="cContainer"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Shared Memory View</h2>
+      <div class="shared">
+        <article class="matrix-card">
+          <h3>Shared Tile from A</h3>
+          <div id="sharedAContainer"></div>
+        </article>
+        <article class="matrix-card">
+          <h3>Shared Tile from B</h3>
+          <div id="sharedBContainer"></div>
+        </article>
+        <div id="sharedMeta" class="shared-meta">No active step yet. Click Start or Step.</div>
+      </div>
+    </section>
+
+    <section class="panel algo">
+      <h2>How the Algorithm Works</h2>
+      <p>
+        Standard multiplication computes each output element as <code>C[i][j] = sum(A[i][k] * B[k][j])</code>. Tiled multiplication groups this work into
+        square blocks (tiles) so data loaded from memory can be reused before fetching the next tile.
+      </p>
+      <ol>
+        <li>Split matrices into tile-sized blocks along rows/columns.</li>
+        <li>For an output tile <code>C(tr, tc)</code>, iterate over <code>k</code>-tiles.</li>
+        <li>Load one tile from <code>A</code> and one tile from <code>B</code> into shared memory.</li>
+        <li>Multiply-accumulate to update partial sums in the output tile.</li>
+        <li>Repeat for the next <code>k</code>-tile until the output tile is complete.</li>
+      </ol>
+      <p>
+        In GPU-style execution, many output tiles are processed in parallel. This visualizer simulates that by advancing all output tiles together per
+        <code>k</code>-tile wave in Parallel mode.
+      </p>
+    </section>
+  </main>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
+
+
