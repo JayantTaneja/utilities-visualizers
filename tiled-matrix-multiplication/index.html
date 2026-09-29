@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tiled Matrix Multiplication Visualizer</title>
-    <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="shell">
@@ -48,6 +48,13 @@
           </select>
         </div>
         <div class="field">
+          <label for="detailSelect">Animation Detail</label>
+          <select id="detailSelect">
+            <option value="tile">Tile waves</option>
+            <option value="mac">Multiply-accumulate detail</option>
+          </select>
+        </div>
+        <div class="field">
           <label for="speedInput">Animation Speed</label>
           <div class="speed-wrap">
             <input id="speedInput" type="range" min="80" max="1500" step="20" value="420">
@@ -65,16 +72,28 @@
         <button id="randomBtn" type="button">Randomize Values</button>
         <button id="startBtn" type="button" class="btn-primary">Start</button>
         <button id="pauseBtn" type="button">Pause</button>
-        <button id="stepBtn" type="button">Step</button>
+        <button id="prevBtn" type="button">Previous Step</button>
+        <button id="stepBtn" type="button">Next Step</button>
         <button id="resetBtn" type="button">Reset Progress</button>
       </div>
 
       <div id="status" class="status" aria-live="polite"></div>
+      <div class="progress-wrap" aria-label="Simulation progress">
+        <progress id="stepProgress" value="0" max="1"></progress>
+        <span id="progressLabel">0 / 0 steps</span>
+      </div>
       <p class="tiny">Dimensions capped at 16 to keep animation responsive and readable.</p>
     </section>
 
     <section class="panel">
       <h2>Matrices</h2>
+      <div class="legend" aria-label="Matrix highlight legend">
+        <span><i class="swatch swatch-a" aria-hidden="true"></i>Loaded from A</span>
+        <span><i class="swatch swatch-b" aria-hidden="true"></i>Loaded from B</span>
+        <span><i class="swatch swatch-c" aria-hidden="true"></i>Active output</span>
+        <span><i class="swatch swatch-updated" aria-hidden="true"></i>Updated this step</span>
+        <span><i class="swatch swatch-selected" aria-hidden="true"></i>Selected cell/tile</span>
+      </div>
       <div class="matrices">
         <article class="matrix-card">
           <h3>A (m x n)</h3>
@@ -84,11 +103,12 @@
           <h3>B (n x o)</h3>
           <div id="bContainer"></div>
         </article>
-        <article class="matrix-card">
-          <h3>C (m x o)</h3>
+        <article id="cCard" class="matrix-card result-card">
+          <h3>C (m x o) <span id="resultBadge" class="result-badge">Not computed</span></h3>
           <div id="cContainer"></div>
         </article>
       </div>
+      <p class="tiny matrix-hint">Select any cell in C to inspect its current equation. Strong outlines mark tile boundaries.</p>
     </section>
 
     <section class="panel">
@@ -102,7 +122,10 @@
           <h3>Shared Tile from B</h3>
           <div id="sharedBContainer"></div>
         </article>
-        <div id="sharedMeta" class="shared-meta">No active step yet. Click Start or Step.</div>
+        <div id="sharedMeta" class="shared-meta">No active step yet. Click Start or Next Step.</div>
+      </div>
+      <div id="equationPanel" class="equation-panel" aria-live="polite">
+        Select a cell in C, then click Start or Next Step to see its multiply-accumulate equation.
       </div>
     </section>
 
@@ -123,10 +146,14 @@
         In GPU-style execution, many output tiles are processed in parallel. This visualizer simulates that by advancing all output tiles together per
         <code>k</code>-tile wave in Parallel mode.
       </p>
+      <p>
+        Tile-wave detail groups all work for one shared-memory tile. Multiply-accumulate detail exposes individual scalar products; in Parallel mode,
+        all output tiles advance together for the selected <code>k</code> value. Partial edge tiles show zero-padded shared-memory lanes.
+      </p>
     </section>
   </main>
 
-    <script src="script.js" defer></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
 
